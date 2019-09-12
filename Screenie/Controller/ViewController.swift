@@ -9,7 +9,7 @@
 import UIKit
 import ReplayKit
 
-class ViewController: UIViewController {
+class ViewController: UIViewController , RPPreviewViewControllerDelegate {
     
     //Outlets -:
     @IBOutlet private weak var statusLbl : UILabel!
@@ -47,7 +47,7 @@ class ViewController: UIViewController {
         if !isRecording {
             startRecording()
         }else {
-//            stopRecording()
+            stopRecording()
         }
     }
     
@@ -81,6 +81,49 @@ class ViewController: UIViewController {
             }
             
         }
+    }
+    
+    func stopRecording(){
+        print("in stop function")
+        recorder.stopRecording { (preview, error) in
+            guard preview != nil else {
+                print("preview controller could not be used ")
+                return
+            }
+            
+            let alert = UIAlertController(title: "Recording Finished", message: "Would you like to edit or delete.", preferredStyle: .alert)
+            
+            let deleteAction = UIAlertAction(title: "Delete", style: .destructive, handler: { (action) in
+                self.recorder.discardRecording {
+                    print("discarded your video done")
+                }
+            })
+            let editAction = UIAlertAction(title: "Edit", style: .default, handler: { (action) in
+                preview?.previewControllerDelegate = self
+                self.present(preview!, animated: true, completion: nil)
+            })
+            
+            alert.addAction(deleteAction)
+            alert.addAction(editAction)
+            
+            self.present(alert, animated: true, completion: nil)
+            
+            self.isRecording = false
+            self.viewReset()
+        }
+    }
+    
+    func viewReset(){
+        micToggle.isEnabled = true
+        statusLbl.textColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
+        statusLbl.text = "Ready to Record"
+        recordBtn.setTitleColor(#colorLiteral(red: 0.2830333114, green: 0.7150810361, blue: 0.3204445839, alpha: 1), for: .normal)
+        recordBtn.setTitle("Record", for: .normal)
+        
+    }
+    
+    func previewControllerDidFinish(_ previewController: RPPreviewViewController) {
+        dismiss(animated: true, completion: nil)
     }
 
 
